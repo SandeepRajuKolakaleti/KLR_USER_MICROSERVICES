@@ -1,0 +1,69 @@
+version: "3.8"
+services:
+    usermysql:
+        image: mysql:latest
+        container_name: mysqlcontainer
+        command: --default-authentication-plugin=mysql_native_password
+        restart: unless-stopped
+        volumes:
+            - ./DBScripts/setup.sql:/docker-entrypoint-initdb.d/0_init.sql
+        ports:
+            - 3306:3306
+        expose:
+            - 3306
+        environment:
+            MYSQL_DATABASE: userdb
+            MYSQL_USER: sandeep
+            MYSQL_PASSWORD: sandeep123
+            MYSQL_ROOT_PASSWORD: sandeep123
+            SERVICE_TAGS: prod
+            SERVICE_NAME: usermysql
+        networks:
+            - user-service-net
+
+    user-service:
+        build:
+            context: ./
+        depends_on:
+            - usermysql
+        environment:
+            NODE_ENV: development
+            JWT_SECRET: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0MDcxNjYwMiwiaWF0IjoxNjQwNzE2NjAyfQ.U8Lkffcq6qlerRlslNU1OUGmihqBanS5_-1iyKXZFSk
+            PORT: 3000
+            DB_HOST: usermysql
+            DB_PORT: 3306
+            DB_USER: 'sandeep'
+            DB_PASSWORD: 'sandeep123'
+            DB_NAME: userdb
+            SERVICE_TAGS: prod
+            SERVICE_NAME: userservice
+        container_name: userservice
+        hostname: userservice
+        ports:
+            - "3000:3000" # out side exposed port: inside main ts port
+        networks:
+            - user-service-net
+
+    nginx:
+        build:
+            context: ./nginx
+        container_name: nginx
+        hostname: nginx
+        depends_on:
+            - user-service
+        ports:
+            - "80:80" # out side exposed port: inside main ts port
+        networks:
+            - user-service-net
+
+    redis:
+        image: redis:latest
+        container_name: redis-server
+        command: ["redis-server", "--bind", "redis", "--port", "5003"]
+        ports:
+            - 5003:6379 # out side exposed port: inside main ts port
+        networks:
+            - user-service-net
+networks:
+    user-service-net:
+        driver: bridge

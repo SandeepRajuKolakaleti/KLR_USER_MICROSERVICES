@@ -1,0 +1,70 @@
+
+tasks:
+
+multi lingual support - angular label (static content)
+  vendor admin panel
+  andhra contnent ... telugu
+  kanada contnent ... kanada
+ 
+every get list should have pagination(Ui will send the pagelimit, pagenumber), search filter(elastic)
+  "Offset": 1,
+  "Count": 1,
+  "Total": 3,
+  "Page": 1,
+  "MaxPages": 3,
+
+UI Template purchase and Angular projects for 
+	web store telugu
+	mobile store
+	admin panel
+
+API gateway project which talks to below microservices
+   routing, security, load balancers
+
+user:
+  user role 
+  two way authentication at api gateway
+  jwt token from microservices to users
+  each call should have the api token
+  verification of role, valid user or not
+  profile
+  password forgot email and phone OTP notification
+  reset password email notification
+
+products:
+  products on sub categories, categories
+  vendor upload products
+  admin products
+  variants types
+  quantity management
+  discount on price
+  comments and reviews
+
+payments:
+  Apply Voucher
+  strips
+  payU
+  Razor pay
+  paytm
+  paypal for 
+  credit/debit card
+  online banking
+
+order:
+  order process 
+   status changes (admin, vendor)
+   tracking
+   assigning delivery boy vendor flow
+   shippment address
+   
+settlement:
+  comission process with merchant (vendor to us)
+
+  
+
+  
+	
+	
+
+
+  
