@@ -10,7 +10,7 @@ ENV PATH /app/node_module/.bin:$PATH
 ENV version=$version_suffix
 
 # Install app dependencies
-COPY ./package*.json /usr/src/app/
+COPY . /usr/src/app/
 RUN npm install --force
 
 # RUN apk add chromium
