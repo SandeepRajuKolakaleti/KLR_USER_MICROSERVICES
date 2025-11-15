@@ -12,10 +12,10 @@ services:
         expose:
             - 3306
         environment:
-            MYSQL_DATABASE: userdb
+            MYSQL_DATABASE: klr_db
             MYSQL_USER: sandeep
-            MYSQL_PASSWORD: sandeep123
-            MYSQL_ROOT_PASSWORD: sandeep123
+            MYSQL_PASSWORD: sandeeprajukolakaleti@538
+            MYSQL_ROOT_PASSWORD: sandeeprajukolakaleti@538
             SERVICE_TAGS: prod
             SERVICE_NAME: usermysql
         networks:
@@ -33,8 +33,8 @@ services:
             DB_HOST: usermysql
             DB_PORT: 3306
             DB_USER: 'sandeep'
-            DB_PASSWORD: 'sandeep123'
-            DB_NAME: userdb
+            DB_PASSWORD: 'sandeeprajukolakaleti@538'
+            DB_NAME: klr_db
             SERVICE_TAGS: prod
             SERVICE_NAME: userservice
         container_name: userservice
@@ -52,16 +52,16 @@ services:
         depends_on:
             - user-service
         ports:
-            - "80:80" # out side exposed port: inside main ts port
+            - "3100:80" # out side exposed port: inside main ts port
         networks:
             - user-service-net
 
     redis:
         image: redis:latest
         container_name: redis-server
-        command: ["redis-server", "--bind", "redis", "--port", "5003"]
+        command: ["redis-server", "--bind", "redis", "--port", "6379"]
         ports:
-            - 5003:6379 # out side exposed port: inside main ts port
+            - 6379:6379 # out side exposed port: inside main ts port
         networks:
             - user-service-net
 networks:
