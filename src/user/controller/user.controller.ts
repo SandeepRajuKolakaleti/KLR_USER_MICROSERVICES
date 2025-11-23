@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -6,6 +6,7 @@ import { CreateUserDto } from '../models/dto/CreateUser.dto';
 import { LoginUserDto } from '../models/dto/LoginUser.dto';
 import { UserI } from '../models/user.interface';
 import { UserService } from '../service/user.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UserController {
@@ -13,9 +14,14 @@ export class UserController {
     constructor(private userService: UserService) {}
 
     @Post('register')
-    async create(@Body() createdUserDto: CreateUserDto): Promise<Observable<UserI>> {
-        return this.userService.create(createdUserDto);
-        // AppConstants.app.xyz
+    @UseInterceptors(FileInterceptor('file'))
+    async create(@UploadedFile() file: Express.Multer.File, @Body() createUserDto: CreateUserDto): Promise<Observable<UserI>> {
+      console.log(file);
+      if (file) {
+        createUserDto.image = file.originalname;
+      }
+      return this.userService.create(createUserDto);
+      // AppConstants.app.xyz
     }
 
     @Post('login')

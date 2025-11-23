@@ -22,22 +22,28 @@ export class UserService {
         private authService: AuthService
     ) { }
 
-    create(createdUserDto: CreateUserDto): Observable<any> {
-        return this.PermissionExists(createdUserDto.userRole.toString()).pipe(switchMap((permissionId: number) => {
-            return this.mailExists(createdUserDto.email).pipe(
+    create(createUserDto: CreateUserDto): Observable<any> {
+        return this.PermissionExists(createUserDto.userRole.toString()).pipe(switchMap((permissionId: number) => {
+            return this.mailExists(createUserDto.email).pipe(
                 switchMap((exists: boolean) => {
                     if (!exists) {
-                        return this.authService.hashPassword(createdUserDto.password).pipe(
+                        return this.authService.hashPassword(createUserDto.password).pipe(
                             switchMap((passwordHash: string) => {
                                 // Overwrite the user password with the hash, to store it in the db
-                                createdUserDto.password = passwordHash;
-                                createdUserDto.permissionId = permissionId;
-                                return from(this.userRepository.save(createdUserDto)).pipe(
-                                    map((savedUser: UserI) => {
+                                createUserDto.password = passwordHash;
+                                createUserDto.permissionId = permissionId;
+                                const user = this.userRepository.create({
+                                    ...createUserDto,
+                                    permissionId,
+                                    password: passwordHash
+                                });
+
+                                return from(this.userRepository.save(user)).pipe(
+                                    map((savedUser) => {
                                         const { password, ...user } = savedUser;
                                         return user;
                                     })
-                                )
+                                );
                             })
                         )
                     } else {

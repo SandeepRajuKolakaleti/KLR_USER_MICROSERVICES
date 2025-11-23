@@ -3,16 +3,15 @@ import { LoginUserDto } from "./LoginUser.dto";
 
 
 export class CreateUserDto extends LoginUserDto {
-    createdUserDto: any;
-    [x: string]: any;
 
     @IsString()
     name!: string; 
 
     @IsString()
-    userRole!:String;
+    userRole!: string;
 
-    
+    @IsString()
+    image!:string;
 
 
     

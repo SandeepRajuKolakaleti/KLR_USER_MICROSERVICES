@@ -22,7 +22,10 @@ export class UserEntity {
     phonenumber!: number;
 
     @Column({select: false})
-    image!: number;
+    image!: string;
+
+    @Column({select: false})
+    userRole!: string;
 
     @BeforeInsert()
     emailToLowerCase() {
