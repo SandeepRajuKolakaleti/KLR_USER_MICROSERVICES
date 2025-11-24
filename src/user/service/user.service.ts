@@ -67,15 +67,18 @@ export class UserService {
                                     if (passwordsMatches) {
                                         return this.findOne(user.id).pipe(switchMap((user: UserI) => {
                                             return this.authService.generateJwt(user).pipe(
-                                                switchMap((gwtStr: String) => {
+                                                switchMap((gwtStr: string) => {
                                                     loginUserDto.id = user.id;
                                                     loginUserDto.gwtToken = gwtStr;
-
-                                                    return this.findPermissionDetailsById(loginUserDto.permissionId).pipe(
+                                                    if(loginUserDto.permissionId) {
+                                                        return this.findPermissionDetailsById(loginUserDto.permissionId).pipe(
                                                         map((userPermission: UserPermissionI) => {
                                                             loginUserDto.permissionName = userPermission.permissionName;
                                                             return '{"token":"' + gwtStr + '","permissionName":"' + userPermission.permissionName + '","id":"' + loginUserDto.id + '"}';
                                                         }))
+                                                    } else {
+                                                        return of('{"token":"' + gwtStr + '","permissionName":"' + permissionName + '","id":"' + loginUserDto.id + '"}');
+                                                    }
                                                 }))
                                         })
                                         )
@@ -128,14 +131,14 @@ export class UserService {
     findOne(id: number): Observable<any> {
         return from(this.userRepository.findOne({ 
             where: {id},
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId']
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole'],
         }));
     }
 
     findUserByEmail(email: string): Observable<any> {
         return from(this.userRepository.findOne({
             where: { email },
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId'], 
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole'], 
         }));
     }
 
@@ -209,6 +212,50 @@ export class UserService {
                 }
             })
         )
+    }
+
+    update(id: number, dto: CreateUserDto): Observable<any> {
+        return from(this.userRepository.findOne({ where: { id } })).pipe(
+            switchMap((existingUser) => {
+                if (!existingUser) {
+                    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+                }
+
+                // Update allowed fields
+                existingUser.name = dto.name ?? existingUser.name;
+                existingUser.email = dto.email?.toLowerCase() ?? existingUser.email;
+                existingUser.userRole = dto.userRole ?? existingUser.userRole;
+                existingUser.permissionId = dto.permissionId ?? existingUser.permissionId;
+                existingUser.phonenumber = Number(dto.phonenumber) ?? existingUser.phonenumber;
+                existingUser.image = dto.image ?? existingUser.image;
+                existingUser.address = dto.address ?? existingUser.address;
+                existingUser.birthday = dto.birthday ?? existingUser.birthday;
+
+                const passwordUpdated = dto.password && dto.password !== existingUser.password;
+
+                // // If password updated → hash it
+                // if (passwordUpdated) {
+                //     return this.authService.hashPassword(dto.password).pipe(
+                //         switchMap((hashed) => {
+                //             existingUser.password = hashed;
+                //             return from(this.userRepository.save(existingUser));
+                //         }),
+                //         map((savedUser) => {
+                //             const { password, ...safeUser } = savedUser;
+                //             return safeUser;
+                //         })
+                //     );
+                // }
+
+                // Password not updated
+                return from(this.userRepository.save(existingUser)).pipe(
+                    map((savedUser) => {
+                        const { password, ...safeUser } = savedUser;
+                        return safeUser;
+                    })
+                );
+            })
+        );
     }
 
 }

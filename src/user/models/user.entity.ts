@@ -27,6 +27,12 @@ export class UserEntity {
     @Column({select: false})
     userRole!: string;
 
+    @Column({select: false})
+    birthday!: string;
+
+    @Column({select: false})
+    address!: string;
+
     @BeforeInsert()
     emailToLowerCase() {
         this.email = this.email.toLowerCase();

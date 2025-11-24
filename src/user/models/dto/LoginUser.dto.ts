@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
-import { clearScreenDown } from "readline";
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
 
 export class LoginUserDto {
 
@@ -9,17 +9,34 @@ export class LoginUserDto {
     @IsNotEmpty()
     password!: string;
 
-    id?:number;
+    @IsOptional()
+    @IsNumber()
+    id?: number;
 
-    permissionId!: number;
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    permissionId?: number;
 
-    gwtToken?:String;
+    @IsOptional()
+    @IsString()
+    @Type(() => String)
+    gwtToken?: string;
 
-    permissionName?:String;
+    @IsOptional()
+    @IsString()
+    permissionName?: string;
 
-    phonenumber?:number;
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    phonenumber?: number;
 
-    tokenStr?:string;
+    @IsOptional()
+    @IsString()
+    tokenStr?: string;
 
+    @IsOptional()
+    @IsString()
     name?: string;
 }

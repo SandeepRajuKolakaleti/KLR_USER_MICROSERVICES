@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Req, UploadedFile
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CreateUserDto } from '../models/dto/CreateUser.dto';
+import { CreateUserDto, UpdateUserDto } from '../models/dto/CreateUser.dto';
 import { LoginUserDto } from '../models/dto/LoginUser.dto';
 import { UserI } from '../models/user.interface';
 import { UserService } from '../service/user.service';
@@ -75,5 +75,17 @@ export class UserController {
     @Delete('profile/:id')
     async deleteUser(@Param('id') id: number): Promise<any> {
       return this.userService.deleteUser(id);
+    }
+
+    @Post('update')
+    @UseInterceptors(FileInterceptor('file'))
+    async update(@UploadedFile() file: Express.Multer.File, @Body() updateUserDto: UpdateUserDto): Promise<Observable<UserI>> {
+      console.log(file);
+      if (file) {
+        updateUserDto.image = file.originalname;
+      }
+      updateUserDto.Id = Number(updateUserDto.Id);
+      return this.userService.update(updateUserDto.Id, updateUserDto);
+      // AppConstants.app.xyz
     }
 }
