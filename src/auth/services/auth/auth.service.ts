@@ -11,7 +11,9 @@ export class AuthService {
     constructor(private readonly jwtService: JwtService) {}
 
     generateJwt(user: UserI): Observable<string> {
-        return from(this.jwtService.signAsync({user}, { expiresIn: AppConstants.app.jwt.expiryTime }));
+        return from(this.jwtService.signAsync({user}, {
+            expiresIn: AppConstants.app.jwt.expiryTime,
+        }));
     }
 
     hashPassword(password: string): Observable<string> {

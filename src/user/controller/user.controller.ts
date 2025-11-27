@@ -29,14 +29,16 @@ export class UserController {
     login(@Body() loginUserDto: LoginUserDto): Observable<Object> {
         return this.userService.login(loginUserDto).pipe(
             map((jsonStr: any) => {
-                var obj = JSON.parse(jsonStr);
-                return {
-                    access_token: obj.token,
-                    token_type: 'JWT',
-                    user_Permission:obj.permissionName,
-                    expires_in: 10000,
-                    id: obj.id
-                }
+              var obj = JSON.parse(jsonStr);
+              let result = {
+                access_token: obj.token,
+                token_type: 'JWT',
+                user_Permission:obj.permissionName,
+                expires_in: 10000,
+                id: obj.id
+              }
+              console.log('Login response object:', result);
+              return result;
             })
         );
     }

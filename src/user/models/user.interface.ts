@@ -4,4 +4,9 @@ export interface UserI {
     email: string;
     password: string;
     permissionId: number;
+    userRole: string;
+    phonenumber: number;
+    image: string;
+    birthday: string;
+    address: string;
 }

@@ -66,8 +66,10 @@ export class UserService {
                                 switchMap((passwordsMatches: boolean) => {
                                     if (passwordsMatches) {
                                         return this.findOne(user.id).pipe(switchMap((user: UserI) => {
+                                            console.log('user', user);
                                             return this.authService.generateJwt(user).pipe(
                                                 switchMap((gwtStr: string) => {
+                                                    console.log('Generated JWT:', gwtStr);
                                                     loginUserDto.id = user.id;
                                                     loginUserDto.gwtToken = gwtStr;
                                                     if(loginUserDto.permissionId) {
