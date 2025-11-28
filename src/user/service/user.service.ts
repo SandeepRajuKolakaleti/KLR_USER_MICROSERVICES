@@ -4,7 +4,7 @@ import { from, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../auth/services/auth/auth.service';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from '../models/dto/CreateUser.dto';
+import { CreateUserDto, UpdateUserDto } from '../models/dto/CreateUser.dto';
 import { LoginUserDto } from '../models/dto/LoginUser.dto';
 import { UserEntity } from '../models/user.entity';
 import { UserI } from '../models/user.interface';
@@ -216,7 +216,7 @@ export class UserService {
         )
     }
 
-    update(id: number, dto: CreateUserDto): Observable<any> {
+    update(id: number, dto: UpdateUserDto): Observable<any> {
         return from(this.userRepository.findOne({ where: { id } })).pipe(
             switchMap((existingUser) => {
                 if (!existingUser) {

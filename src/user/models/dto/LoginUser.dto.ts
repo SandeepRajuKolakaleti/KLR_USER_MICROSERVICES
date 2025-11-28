@@ -11,6 +11,7 @@ export class LoginUserDto {
 
     @IsOptional()
     @IsNumber()
+    @Type(() => Number)
     id?: number;
 
     @IsOptional()
