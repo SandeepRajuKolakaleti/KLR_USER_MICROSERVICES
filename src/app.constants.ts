@@ -9,6 +9,16 @@ export class AppConstants {
             expiryTime: 113600,
             type: 'JWT' 
         },
+        userType: {
+            admin: 'Admin',
+            user: 'User',
+            vendor: 'Vendor',
+            deliveryBoy: 'DeliveryBoy'
+        },
+        status: {
+            active: 1,
+            inactive: 0
+        }
     };
 
 }

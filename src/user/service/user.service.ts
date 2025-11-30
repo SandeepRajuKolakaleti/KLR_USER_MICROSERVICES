@@ -10,6 +10,7 @@ import { UserEntity } from '../models/user.entity';
 import { UserI } from '../models/user.interface';
 import { UserPermissionI } from '../models/user.permission.interface';
 import { UserPermissionEntity } from '../models/user.permission.entity';
+import { AppConstants } from 'src/app.constants';
 
 @Injectable()
 export class UserService {
@@ -127,29 +128,36 @@ export class UserService {
     }
 
     findAll(): Observable<UserI[]> {
-        return from(this.userRepository.find());
+        return from(this.userRepository.find({
+            // where: {status: AppConstants.app.status.active},
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'],
+        }));
     }
 
     findOne(id: number): Observable<any> {
         return from(this.userRepository.findOne({ 
             where: {id},
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole'],
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'],
         }));
     }
 
     findUserByEmail(email: string): Observable<any> {
         return from(this.userRepository.findOne({
             where: { email },
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole'], 
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'], 
         }));
     }
 
     async deleteUser(id: number) {
         const user = await this.userRepository.findOne({ where: { id } });
-        if (user) {
-           await this.userRepository.remove(user);
-           return true;
+        if (!user) {
+            return false;
         }
+
+        user.status = AppConstants.app.status.inactive; // deactivate user instead of deleting
+        await this.userRepository.save(user);
+
+        return true;
     }
 
     private validatePassword(password: string, storedPasswordHash: string): Observable<boolean> {
@@ -228,26 +236,43 @@ export class UserService {
                 existingUser.email = dto.email?.toLowerCase() ?? existingUser.email;
                 existingUser.userRole = dto.userRole ?? existingUser.userRole;
                 existingUser.permissionId = dto.permissionId ?? existingUser.permissionId;
-                existingUser.phonenumber = Number(dto.phonenumber) ?? existingUser.phonenumber;
+                existingUser.phonenumber = dto.phonenumber ?? existingUser.phonenumber;
                 existingUser.image = dto.image ?? existingUser.image;
                 existingUser.address = dto.address ?? existingUser.address;
                 existingUser.birthday = dto.birthday ?? existingUser.birthday;
+                existingUser.revenue = dto.revenue ?? existingUser.revenue;
+                existingUser.totalSales = dto.totalSales ?? existingUser.totalSales;
 
                 const passwordUpdated = dto.password && dto.password !== existingUser.password;
 
-                // // If password updated → hash it
-                // if (passwordUpdated) {
-                //     return this.authService.hashPassword(dto.password).pipe(
-                //         switchMap((hashed) => {
-                //             existingUser.password = hashed;
-                //             return from(this.userRepository.save(existingUser));
-                //         }),
-                //         map((savedUser) => {
-                //             const { password, ...safeUser } = savedUser;
-                //             return safeUser;
-                //         })
-                //     );
-                // }
+                // If password updated → hash it and save
+                if (passwordUpdated) {
+                    let existingUserPassword = existingUser.password? existingUser.password : '';
+                    return this.validatePassword(dto.password, existingUserPassword).pipe(
+                        switchMap(passwordMatched => {
+                            if (!passwordMatched) {
+                                return this.authService.hashPassword(dto.password).pipe(
+                                    switchMap((hashed) => {
+                                        existingUser.password = hashed;
+                                        return from(this.userRepository.save(existingUser)).pipe(
+                                            map((updatedUser: any) => {
+                                                const { password, ...user } = updatedUser;
+                                                return user;
+                                            })
+                                        );
+                                    })
+                                );
+                            }
+                            // Password matched (no change needed), just save
+                            return from(this.userRepository.save(existingUser)).pipe(
+                                map((savedUser: any) => {
+                                    const { password, ...user } = savedUser;
+                                    return user;
+                                })
+                            );
+                        })
+                    );
+                }
 
                 // Password not updated
                 return from(this.userRepository.save(existingUser)).pipe(

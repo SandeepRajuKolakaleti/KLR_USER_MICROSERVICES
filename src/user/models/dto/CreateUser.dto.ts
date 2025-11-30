@@ -22,6 +22,16 @@ export class CreateUserDto extends LoginUserDto {
 	@IsString()
     @IsOptional()
     birthday?:string;
+
+    @IsOptional()
+    @IsString()
+    @Type(() => String)
+    totalSales?: string;
+
+    @IsOptional()
+    @IsString()
+    @Type(() => String)
+    revenue?: string;
     
 }
 

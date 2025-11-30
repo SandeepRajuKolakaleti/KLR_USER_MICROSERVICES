@@ -46,7 +46,7 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @Get()
     findAll(): Observable<UserI[]> {
-        return this.userService.findAll();
+      return this.userService.findAll();
     }
 
     @UseGuards(JwtAuthGuard)
@@ -69,8 +69,8 @@ export class UserController {
 
     @Post('resetPassword')
     async resetPassword(@Body() resetPassword: LoginUserDto): Promise<Observable<UserI>> {
-        return this.userService.resetPassword(resetPassword);
-        // AppConstants.app.xyz
+      return this.userService.resetPassword(resetPassword);
+      // AppConstants.app.xyz
     }
 
     @UseGuards(JwtAuthGuard)
