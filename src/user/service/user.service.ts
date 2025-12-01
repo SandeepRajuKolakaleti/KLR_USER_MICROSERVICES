@@ -11,17 +11,28 @@ import { UserI } from '../models/user.interface';
 import { UserPermissionI } from '../models/user.permission.interface';
 import { UserPermissionEntity } from '../models/user.permission.entity';
 import { AppConstants } from 'src/app.constants';
-
+import { ConfigService } from '@nestjs/config';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import axios from 'axios';
 @Injectable()
 export class UserService {
-
+    public readonly s3Client;
     constructor(
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
         @InjectRepository(UserPermissionEntity)
         private userPermissionRepository: Repository<UserPermissionEntity>,
-        private authService: AuthService
-    ) { }
+        private authService: AuthService,
+        private configService: ConfigService,
+    ) { 
+        this.s3Client = new S3Client({
+            region: configService.get('S3_REGION'),
+            credentials: {
+                accessKeyId: configService.get('S3_ACCESS_KEY_ID')|| '',
+                secretAccessKey: configService.get('S3_SECRET_ACCESS_KEY') || '',
+            },
+        });
+    }
 
     create(createUserDto: CreateUserDto): Observable<any> {
         return this.PermissionExists(createUserDto.userRole.toString()).pipe(switchMap((permissionId: number) => {
@@ -130,21 +141,21 @@ export class UserService {
     findAll(): Observable<UserI[]> {
         return from(this.userRepository.find({
             // where: {status: AppConstants.app.status.active},
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'],
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status', 'createdAt', 'updatedAt'],
         }));
     }
 
     findOne(id: number): Observable<any> {
         return from(this.userRepository.findOne({ 
             where: {id},
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'],
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status', 'createdAt', 'updatedAt'],
         }));
     }
 
     findUserByEmail(email: string): Observable<any> {
         return from(this.userRepository.findOne({
             where: { email },
-            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status'], 
+            select: ['id', 'email', 'name', 'password', 'phonenumber', 'image', 'permissionId', 'address', 'birthday', 'userRole', 'revenue', 'totalSales', 'status', 'createdAt', 'updatedAt'], 
         }));
     }
 
@@ -283,6 +294,42 @@ export class UserService {
                 );
             })
         );
+    }
+
+    async upload(fileName: string, file:Buffer) {
+        const folder = AppConstants.app.S3.user;
+        const s3Key = `${folder}/${fileName}`;
+        await this.s3Client.send(
+            new PutObjectCommand({
+                Bucket: AppConstants.app.bucket,
+                Key: s3Key,
+                Body: file
+            })
+        );
+        // await this.getImageUrlToBase64(s3Key)
+        return s3Key;
+    }
+
+    async getImageUrlToBase64(s3Key: string) {
+        return await this.imageUrlToBase64(`https://${AppConstants.app.bucket}.s3.${this.configService.get('S3_REGION')}.amazonaws.com/${s3Key}`)
+        .then((base64) => {
+            // console.log("base64", base64);
+            return { img: base64 };
+        })
+        .catch(console.error);
+    }
+
+    async imageUrlToBase64(url: string): Promise<string> {
+        const response = await axios.get(url, {
+          responseType: 'arraybuffer',
+        });
+      
+        const base64 = Buffer.from(response.data, 'binary').toString('base64');
+      
+        // Optional: Get content-type for full data URI
+        const contentType = response.headers['content-type'];
+      
+        return `data:${contentType};base64,${base64}`;
     }
 
 }

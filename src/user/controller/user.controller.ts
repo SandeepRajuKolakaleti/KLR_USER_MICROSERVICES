@@ -17,10 +17,10 @@ export class UserController {
     @UseInterceptors(FileInterceptor('file'))
     async create(@UploadedFile() file: Express.Multer.File, @Body() createUserDto: CreateUserDto): Promise<Observable<UserI>> {
       console.log(file);
-      if (file) {
-        createUserDto.image = file.originalname;
-      }
-      return this.userService.create(createUserDto);
+      return await this.userService.upload(file.originalname, file.buffer).then((data) => {
+        createUserDto.image = data;
+        return this.userService.create(createUserDto);
+      });
       // AppConstants.app.xyz
     }
 
@@ -83,11 +83,18 @@ export class UserController {
     @UseInterceptors(FileInterceptor('file'))
     async update(@UploadedFile() file: Express.Multer.File, @Body() updateUserDto: UpdateUserDto): Promise<Observable<UserI>> {
       console.log(file);
-      if (file) {
-        updateUserDto.image = file.originalname;
-      }
-      updateUserDto.Id = Number(updateUserDto.Id);
-      return this.userService.update(updateUserDto.Id, updateUserDto);
+      let userId = Number(updateUserDto.Id);
+      return await this.userService.upload(file.originalname, file.buffer).then((data) => {
+        updateUserDto.image = data;
+        return this.userService.update(userId, updateUserDto);
+      });
       // AppConstants.app.xyz
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('uploadImgToBase64')
+    async base64(@Body() img: any) {
+        console.log(img);
+        return this.userService.getImageUrlToBase64(img.url);
     }
 }

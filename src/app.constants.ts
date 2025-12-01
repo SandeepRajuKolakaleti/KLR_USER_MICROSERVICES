@@ -9,6 +9,11 @@ export class AppConstants {
             expiryTime: 113600,
             type: 'JWT' 
         },
+        bucket: 'klruploads',
+        S3: {
+            user: 'user-profile-images',
+            product: 'product-images'
+        },
         userType: {
             admin: 'Admin',
             user: 'User',
