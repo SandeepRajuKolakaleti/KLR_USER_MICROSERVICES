@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -7,6 +7,7 @@ import { LoginUserDto } from '../models/dto/LoginUser.dto';
 import { UserI } from '../models/user.interface';
 import { UserService } from '../service/user.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginatedResult } from '../models/pagination.interface';
 
 @Controller('users')
 export class UserController {
@@ -45,8 +46,15 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    findAll(): Observable<UserI[]> {
-      return this.userService.findAll();
+    findAll(
+      @Req() request: Request, 
+      @Query("offset", new ParseIntPipe({ optional: true })) offset = 0,
+      @Query("limit", new ParseIntPipe({ optional: true })) limit = 10,
+    ): Observable<PaginatedResult<UserI>> {
+      return this.userService.findAll({
+        offset: Number(offset),
+        limit: Number(limit)
+      });
     }
 
     @UseGuards(JwtAuthGuard)
